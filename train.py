@@ -15,6 +15,8 @@ from resnet import *
 
 
 parser = argparse.ArgumentParser(description='NNDL Final Project')
+parser.add_argument('--dataset', default='cifar10')
+
 parser.add_argument('--batch_size', type=int, default=128, help='input batch size for training (default: 128)')
 parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train (default: 20)')
 parser.add_argument('--learning_rate', type=float, default=0.1, help='learning rate')
@@ -75,9 +77,15 @@ test_transform = transforms.Compose([
     ])
 
 # dataset
-num_classes = 10
-train_dataset = datasets.CIFAR10(root='data/', train=True, transform=train_transform, download=True)
-test_dataset = datasets.CIFAR10(root='data/', train=False, transform=test_transform, download=True)
+if args.dataset == 'cifar10':
+    num_classes = 10
+    train_dataset = datasets.CIFAR10(root='data/',train=True,transform=train_transform,download=True)
+    test_dataset = datasets.CIFAR10(root='data/',train=False,transform=test_transform,download=True)
+
+elif args.dataset == 'cifar100':
+    num_classes = 100
+    train_dataset = datasets.CIFAR100(root='data/',train=True,transform=train_transform,download=True)
+    test_dataset = datasets.CIFAR100(root='data/',train=False,transform=test_transform,download=True)
 
 
 # Data Loader (Input Pipeline)
@@ -88,8 +96,7 @@ model = ResNet18(num_classes=num_classes)
 
 model = model.cuda()
 criterion = nn.CrossEntropyLoss().cuda()
-model_optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate,
-                                momentum=0.9, nesterov=True, weight_decay=5e-4)
+model_optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, nesterov=True, weight_decay=5e-4)
 
 scheduler = MultiStepLR(model_optimizer, milestones=[60, 120, 160], gamma=0.2)
 
