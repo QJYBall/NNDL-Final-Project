@@ -36,7 +36,7 @@ class Cutout(object):
             x1 = np.clip(x - self.length // 2, 0, w)
             x2 = np.clip(x + self.length // 2, 0, w)
 
-            mask[y1: y2, x1: x2] = 0.
+            mask[y1:y2, x1:x2] = 0.
 
         mask = torch.from_numpy(mask)
         mask = mask.expand_as(img)
@@ -47,6 +47,8 @@ class Cutout(object):
 
 # cutmix
 """输入为：样本的size和生成的随机lamda值"""
+
+
 def rand_bbox(size, lam):
     W = size[2]
     H = size[3]
@@ -54,13 +56,13 @@ def rand_bbox(size, lam):
     cut_rat = np.sqrt(1. - lam)
     cut_w = np.int(W * cut_rat)
     cut_h = np.int(H * cut_rat)
- 
+
     # uniform
     """2.论文里的公式2，求出B的rx,ry（bbox的中心点）"""
     cx = np.random.randint(W)
     cy = np.random.randint(H)
     #限制坐标区域不超过样本大小
- 
+
     bbx1 = np.clip(cx - cut_w // 2, 0, W)
     bby1 = np.clip(cy - cut_h // 2, 0, H)
     bbx2 = np.clip(cx + cut_w // 2, 0, W)
@@ -70,7 +72,7 @@ def rand_bbox(size, lam):
 
 
 # mixup
-def mixup_data(x, y, alpha=1.0, use_cuda=True):
+def mixup_data(x, y, device, alpha=1.0):
     '''Returns mixed inputs, pairs of targets, and lambda'''
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
@@ -78,10 +80,7 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
         lam = 1
 
     batch_size = x.size()[0]
-    if use_cuda:
-        index = torch.randperm(batch_size).cuda()
-    else:
-        index = torch.randperm(batch_size)
+    index = torch.randperm(batch_size).to(device)
 
     mixed_x = lam * x + (1 - lam) * x[index, :]
     y_a, y_b = y, y[index]

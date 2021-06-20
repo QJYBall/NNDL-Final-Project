@@ -13,13 +13,12 @@ from torchvision import datasets, transforms
 from utils import Cutout, rand_bbox, mixup_data, CSVLogger
 from resnet import *
 
-
 parser = argparse.ArgumentParser(description='NNDL Final Project')
 parser.add_argument('--dataset', default='cifar10')
 
 parser.add_argument('--batch_size', type=int, default=128, help='input batch size for training (default: 128)')
 parser.add_argument('--epochs', type=int, default=200, help='number of epochs to train (default: 20)')
-parser.add_argument('--learning_rate', type=float, default=0.1, help='learning rate')
+parser.add_argument('--learning_rate', type=float, default=0.1, help='leaning rate')
 
 parser.add_argument('--cutout', action='store_true', default=False, help='apply cutout')
 parser.add_argument('--cutmix', action='store_true', default=False, help='apply cutmix')
@@ -51,10 +50,9 @@ if args.cutout == True:
 elif args.cutmix == True:
     file_name = 'cutmix'
 elif args.mixup == True:
-    file_name = 'mixup' 
+    file_name = 'mixup'
 else:
-    file_name = 'none'  
-
+    file_name = 'none'
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -68,35 +66,36 @@ train_transform = transforms.Compose([
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize(mean=[x / 255.0 for x in [125.3, 123.0, 113.9]], std=[x / 255.0 for x in [63.0, 62.1, 66.7]])
-    ])
-
+])
 
 test_transform = transforms.Compose([
-    transforms.ToTensor(), 
+    transforms.ToTensor(),
     transforms.Normalize(mean=[x / 255.0 for x in [125.3, 123.0, 113.9]], std=[x / 255.0 for x in [63.0, 62.1, 66.7]])
-    ])
+])
 
 # dataset
 if args.dataset == 'cifar10':
     num_classes = 10
-    train_dataset = datasets.CIFAR10(root='data/',train=True,transform=train_transform,download=True)
-    test_dataset = datasets.CIFAR10(root='data/',train=False,transform=test_transform,download=True)
+    train_dataset = datasets.CIFAR10(root='data/', train=True, transform=train_transform, download=True)
+    test_dataset = datasets.CIFAR10(root='data/', train=False, transform=test_transform, download=True)
 
 elif args.dataset == 'cifar100':
     num_classes = 100
-    train_dataset = datasets.CIFAR100(root='data/',train=True,transform=train_transform,download=True)
-    test_dataset = datasets.CIFAR100(root='data/',train=False,transform=test_transform,download=True)
-
+    train_dataset = datasets.CIFAR100(root='data/', train=True, transform=train_transform, download=True)
+    test_dataset = datasets.CIFAR100(root='data/', train=False, transform=test_transform, download=True)
 
 # Data Loader (Input Pipeline)
-train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True, pin_memory=True, num_workers=2)
-test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False, pin_memory=True, num_workers=2)
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=args.batch_size, shuffle=True,
+                                           pin_memory=True, num_workers=2)
+test_loader = torch.utils.data.DataLoader(dataset=test_dataset, batch_size=args.batch_size, shuffle=False,
+                                          pin_memory=True, num_workers=2)
 
 model = ResNet18(num_classes=num_classes)
 
 model = model.cuda()
 criterion = nn.CrossEntropyLoss().cuda()
-model_optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, nesterov=True, weight_decay=5e-4)
+model_optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, nesterov=True,
+                                  weight_decay=5e-4)
 
 scheduler = MultiStepLR(model_optimizer, milestones=[60, 120, 160], gamma=0.2)
 
@@ -105,7 +104,7 @@ csv_logger = CSVLogger(args=args, fieldnames=['epoch', 'train_acc', 'test_acc'],
 
 
 def test(loader):
-    model.eval()    # Change model to 'eval' mode (BN uses moving mean/var).
+    model.eval() # Change model to 'eval' mode (BN uses moving mean/var).
     correct = 0.
     total = 0.
     for images, labels in loader:
@@ -125,7 +124,7 @@ def test(loader):
 
 
 def simple_train():
-    
+
     for epoch in range(args.epochs):
 
         xentropy_loss_avg = 0.
@@ -166,13 +165,12 @@ def simple_train():
 
     torch.save(model.state_dict(), 'checkpoints/cifar_' + file_name + '.pt')
     csv_logger.close()
-    
 
 
 def cutout_train():
-    
+
     train_transform.transforms.append(Cutout(n_holes=args.n_holes, length=args.length))
-    
+
     for epoch in range(args.epochs):
 
         xentropy_loss_avg = 0.
@@ -281,7 +279,7 @@ def cutmix_train():
 
     torch.save(model.state_dict(), 'checkpoints/cifar_' + file_name + '.pt')
     csv_logger.close()
-    
+
 
 def mixup_train():
 
