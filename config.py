@@ -37,7 +37,7 @@ def config(name='NNDL Final Project'):
     parser.add_argument('--weight_decay', type=float, default=5e-4)
     parser.add_argument('--momentum', type=float, default=0.9)
     parser.add_argument('--no_nesterov', default=True, action='store_false')
-    parser.add_argument('--scheduler_multisteplr_milestones', default=(60, 120, 160))
+    parser.add_argument('--scheduler_multisteplr_milestones', default=(40, 80, 120, 160))
     parser.add_argument('--scheduler_multisteplr_gamma', type=float, default=0.2)
 
     parser.add_argument('--cutout', action='store_true', default=False, help='apply cutout')

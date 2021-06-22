@@ -76,13 +76,13 @@ class Trainer:
 
         if self.cfg.is_validation: # only perform validation
             self.train_set = None
-            self.val_set = dataset(root='data/', train=False, transform=val_transform, download=False)
+            self.val_set = dataset(root='data/', train=False, transform=val_transform, download=True)
         elif self.cfg.epoch_validation == 0: # training without validation
-            self.train_set = dataset(root='data/', train=True, transform=train_transform, download=False)
+            self.train_set = dataset(root='data/', train=True, transform=train_transform, download=True)
             self.val_set = None
         else: # training with validation
-            self.train_set = dataset(root='data/', train=True, transform=train_transform, download=False)
-            self.val_set = dataset(root='data/', train=False, transform=val_transform, download=False)
+            self.train_set = dataset(root='data/', train=True, transform=train_transform, download=True)
+            self.val_set = dataset(root='data/', train=False, transform=val_transform, download=True)
 
         if self.train_set is not None:
             self.train_loader = DataLoader(
@@ -245,11 +245,13 @@ class Trainer:
 
                 # save best model
                 if score >= score_model_best:
+                    score_model_best = score
                     if self.cfg.save_better_models:
                         name_best_model_saved = f'model_best_{epoch}_{iter}.pth'
+                        self.logger_all.warning('Saving best model: ' + name_best_model_saved)
                     else:
                         name_best_model_saved = 'model_best.pth'
-                    self.logger_all.warning('Saving best model: ' + name_best_model_saved)
+                        self.logger_all.warning(f'Saving best model: epoch {epoch}, iter {iter}')
                     torch.save(self.model.state_dict(), os.path.join(self.path_checkpoints, name_best_model_saved))
 
                 self.model.train()
